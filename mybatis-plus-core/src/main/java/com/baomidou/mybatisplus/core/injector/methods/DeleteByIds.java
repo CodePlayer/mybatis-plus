@@ -62,7 +62,7 @@ public class DeleteByIds extends AbstractMethod {
             return addUpdateMappedStatement(mapperClass, modelClass, methodName, sqlSource);
         } else {
             sqlMethod = SqlMethod.DELETE_BY_IDS;
-            sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), tableInfo.getKeyColumn(),
+            sql = sqlMethod.format(tableInfo.getTableName(), tableInfo.getKeyColumn(),
                 SqlScriptUtils.convertForeach(
                     SqlScriptUtils.convertChoose("@org.apache.ibatis.type.SimpleTypeRegistry@isSimpleType(item.getClass())",
                         "#{item}", "#{item." + tableInfo.getKeyProperty() + "}"),
@@ -88,7 +88,7 @@ public class DeleteByIds extends AbstractMethod {
                 .map(i -> i.getSqlSet(Constants.MP_FILL_ET + StringPool.DOT)).collect(joining(EMPTY)), String.format("%s != null", Constants.MP_FILL_ET), true);
         }
         sqlSet += StringPool.EMPTY + tableInfo.getLogicDeleteSql(false, false);
-        return String.format(sqlMethod.getSql(), tableInfo.getTableName(),
+        return sqlMethod.format(tableInfo.getTableName(),
             sqlSet, tableInfo.getKeyColumn(), SqlScriptUtils.convertForeach(
                 SqlScriptUtils.convertChoose("@org.apache.ibatis.type.SimpleTypeRegistry@isSimpleType(item.getClass())",
                     "#{item}", "#{item." + tableInfo.getKeyProperty() + "}"),

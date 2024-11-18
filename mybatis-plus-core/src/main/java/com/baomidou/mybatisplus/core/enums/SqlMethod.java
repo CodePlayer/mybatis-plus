@@ -15,6 +15,9 @@
  */
 package com.baomidou.mybatisplus.core.enums;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * MybatisPlus 支持 SQL 方法
  *
@@ -101,6 +104,8 @@ public enum SqlMethod {
     private final String method;
     private final String desc;
     private final String sql;
+    /** [ null, [s1From, s1To], null, null, [s2From, s2To] ] */
+    private transient int[][] compiledPosPairs;
 
     SqlMethod(String method, String desc, String sql) {
         this.method = method;
@@ -119,4 +124,43 @@ public enum SqlMethod {
     public String getSql() {
         return sql;
     }
+
+    private static int[][] compile(final String sqlTemplate) {
+        final List<int[]> list = new ArrayList<>(6);
+        final String placeholder = "%s";
+        int begin = 0, pos = sqlTemplate.indexOf(placeholder, begin);
+        while (pos != -1) {
+            if (begin < pos) {
+                list.add(new int[] { begin, pos });
+            }
+            list.add(null); // null is placeholder
+            begin = pos + placeholder.length();
+            pos = sqlTemplate.indexOf(placeholder, begin);
+        }
+        final int length = sqlTemplate.length();
+        if (begin < length) {
+            list.add(new int[] { begin, length });
+        }
+        return list.toArray(new int[list.size()][]);
+    }
+
+    public String format(Object... args) {
+        // return String.format(getSql(), args);
+        int[][] pairs = compiledPosPairs;
+        final String sql = getSql();
+        if (pairs == null) {
+            compiledPosPairs = pairs = compile(sql);
+        }
+        final StringBuilder sb = new StringBuilder(sql.length() + 64);
+        int i = 0;
+        for (final int[] pair : pairs) {
+            if (pair == null) {
+                sb.append(args[i++]);
+            } else {
+                sb.append(sql, pair[0], pair[1]);
+            }
+        }
+        return sb.toString();
+    }
+
 }

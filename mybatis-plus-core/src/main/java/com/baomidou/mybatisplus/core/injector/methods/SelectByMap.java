@@ -47,7 +47,7 @@ public class SelectByMap extends AbstractMethod {
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
         SqlMethod sqlMethod = SqlMethod.SELECT_BY_MAP;
-        String sql = String.format(sqlMethod.getSql(), sqlSelectColumns(tableInfo, false),
+        String sql = sqlMethod.format(sqlSelectColumns(tableInfo, false),
             tableInfo.getTableName(), sqlWhereByMap(tableInfo));
         SqlSource sqlSource = super.createSqlSource(configuration, sql, Map.class);
         return this.addSelectMappedStatementForTable(mapperClass, methodName, sqlSource, tableInfo);

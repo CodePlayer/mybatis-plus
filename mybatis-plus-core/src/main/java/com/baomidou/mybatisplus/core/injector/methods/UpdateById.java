@@ -45,7 +45,7 @@ public class UpdateById extends AbstractMethod {
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
         SqlMethod sqlMethod = SqlMethod.UPDATE_BY_ID;
         final String additional = optlockVersion(tableInfo) + tableInfo.getLogicDeleteSql(true, true);
-        String sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(),
+        String sql = sqlMethod.format(tableInfo.getTableName(),
             sqlSet(tableInfo.isWithLogicDelete(), false, tableInfo, false, ENTITY, ENTITY_DOT),
             tableInfo.getKeyColumn(), ENTITY_DOT + tableInfo.getKeyProperty(), additional);
         SqlSource sqlSource = super.createSqlSource(configuration, sql, modelClass);
