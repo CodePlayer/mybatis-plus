@@ -19,7 +19,6 @@ import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.generator.config.ConstVal;
 
-import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -61,15 +60,17 @@ public enum NamingStrategy {
         String[] camels = tempName.split(ConstVal.UNDERLINE);
         // 跳过原始字符串中开头、结尾的下换线或双重下划线
         // 处理真正的驼峰片段
-        Arrays.stream(camels).filter(camel -> !StringUtils.isBlank(camel)).forEach(camel -> {
-            if (result.length() == 0) {
-                // 第一个驼峰片段，首字母都小写
-                result.append(StringUtils.firstToLowerCase(camel));
-            } else {
-                // 其他的驼峰片段，首字母大写
-                result.append(capitalFirst(camel));
+        for (String camel : camels) {
+            if (!StringUtils.isBlank(camel)) {
+                if (result.length() == 0) {
+                    // 第一个驼峰片段，首字母都小写
+                    result.append(StringUtils.firstToLowerCase(camel));
+                } else {
+                    // 其他的驼峰片段，首字母大写
+                    result.append(capitalFirst(camel));
+                }
             }
-        });
+        }
         return result.toString();
     }
 

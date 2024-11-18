@@ -138,11 +138,11 @@ public class MybatisPlusInterceptor implements Interceptor {
     public void setProperties(Properties properties) {
         PropertyMapper pm = PropertyMapper.newInstance(properties);
         Map<String, Properties> group = pm.group(StringPool.AT);
-        group.forEach((k, v) -> {
-            InnerInterceptor innerInterceptor = ClassUtils.newInstance(k);
-            innerInterceptor.setProperties(v);
+        for (Map.Entry<String, Properties> entry : group.entrySet()) {
+            InnerInterceptor innerInterceptor = ClassUtils.newInstance(entry.getKey());
+            innerInterceptor.setProperties(entry.getValue());
             addInnerInterceptor(innerInterceptor);
-        });
+        }
     }
 
     @Override

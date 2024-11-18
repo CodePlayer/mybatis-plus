@@ -498,7 +498,9 @@ public class TableInfo implements Constants {
                 resultMappings.add(idMapping);
             }
             if (CollectionUtils.isNotEmpty(fieldList)) {
-                fieldList.forEach(i -> resultMappings.add(i.getResultMapping(configuration)));
+                for (TableFieldInfo i : fieldList) {
+                    resultMappings.add(i.getResultMapping(configuration));
+                }
             }
             ResultMap resultMap = new ResultMap.Builder(configuration, id, entityType, resultMappings).build();
             configuration.addResultMap(resultMap);
@@ -510,7 +512,7 @@ public class TableInfo implements Constants {
         this.fieldList = fieldList;
         AtomicInteger logicDeleted = new AtomicInteger();
         AtomicInteger version = new AtomicInteger();
-        fieldList.forEach(i -> {
+        for (TableFieldInfo i : fieldList) {
             if (i.isLogicDelete()) {
                 this.withLogicDelete = true;
                 this.logicDeleteFieldInfo = i;
@@ -527,7 +529,7 @@ public class TableInfo implements Constants {
                 this.versionFieldInfo = i;
                 version.getAndAdd(1);
             }
-        });
+        }
         /* 校验字段合法性 */
         Assert.isTrue(logicDeleted.get() <= 1, "@TableLogic not support more than one in Class: \"%s\"", entityType.getName());
         Assert.isTrue(version.get() <= 1, "@Version not support more than one in Class: \"%s\"", entityType.getName());

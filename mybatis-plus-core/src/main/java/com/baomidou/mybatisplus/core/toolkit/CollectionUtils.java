@@ -200,7 +200,12 @@ public class CollectionUtils {
     public static <K, V> List<V> getCollection(Map<K, V> map, Iterable<K> keys) {
         List<V> result = new ArrayList<>();
         if (map != null && !map.isEmpty() && keys != null) {
-            keys.forEach(key -> Optional.ofNullable(map.get(key)).ifPresent(result::add));
+            for (K key : keys) {
+                V v = map.get(key);
+                if (v != null) {
+                    result.add(v);
+                }
+            }
         }
         return result;
     }
@@ -218,7 +223,7 @@ public class CollectionUtils {
     public static <K, V> List<V> getCollection(Map<K, V> map, Iterable<K> keys, Comparator<V> comparator) {
         Objects.requireNonNull(comparator);
         List<V> result = getCollection(map, keys);
-        Collections.sort(result, comparator);
+        result.sort(comparator);
         return result;
     }
 
@@ -235,27 +240,52 @@ public class CollectionUtils {
         return Collections.emptyList();
     }
 
+    public static <E, R> List<R> toList(Collection<E> c, Function<? super E, R> converter) {
+        if (c == null) {
+            return null;
+        }
+        final List<R> list = new ArrayList<>(c.size());
+        for (E t : c) {
+            R val = converter.apply(t);
+            list.add(val);
+        }
+        return list;
+    }
+
     /**
      * 切割集合为多个集合
-     * @param entityList 数据集合
+     *
+     * @param c 数据集合
      * @param batchSize 每批集合的大小
-     * @return 切割后的多个集合
      * @param <T> 数据类型
+     * @return 切割后的多个集合
      */
-    public static <T> List<List<T>> split(Collection<T> entityList, int batchSize) {
-        if (isEmpty(entityList)) {
+    public static <T> List<List<T>> split(Collection<T> c, int batchSize) {
+        if (isEmpty(c)) {
             return Collections.emptyList();
         }
         Assert.isFalse(batchSize < 1, "batchSize must not be less than one");
-        final Iterator<T> iterator = entityList.iterator();
-        final List<List<T>> results = new ArrayList<>(entityList.size() / batchSize);
-        while (iterator.hasNext()) {
-            final List<T> list = IntStream.range(0, batchSize).filter(x -> iterator.hasNext())
-                .mapToObj(i -> iterator.next()).collect(Collectors.toList());
-            if (!list.isEmpty()) {
-                results.add(list);
+        final int total = c.size();
+        final List<List<T>> results = new ArrayList<>(total / batchSize + 1);
+        if (c instanceof List) {
+            final List<T> list = (List<T>) c;
+            for (int i = 0; i < total; ) {
+                int end = Math.min(total, i + batchSize);
+                results.add(list.subList(i, end));
+                i = end;
+            }
+        } else {
+            List<T> subList = new ArrayList<>(Math.min(total, batchSize));
+            results.add(subList);
+            int count = 0;
+            for (T t : c) {
+                subList.add(t);
+                if (++count % batchSize == 0 && count < total) {
+                    results.add(subList = new ArrayList<>(Math.min(total - count, batchSize)));
+                }
             }
         }
         return results;
     }
+
 }

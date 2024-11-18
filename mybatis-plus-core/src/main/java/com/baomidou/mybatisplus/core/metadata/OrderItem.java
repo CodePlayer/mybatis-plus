@@ -15,6 +15,7 @@
  */
 package com.baomidou.mybatisplus.core.metadata;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class OrderItem implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     /**
@@ -53,11 +55,11 @@ public class OrderItem implements Serializable {
     }
 
     public static List<OrderItem> ascs(String... columns) {
-        return Arrays.stream(columns).map(OrderItem::asc).collect(Collectors.toList());
+        return CollectionUtils.toList(Arrays.asList(columns), OrderItem::asc);
     }
 
     public static List<OrderItem> descs(String... columns) {
-        return Arrays.stream(columns).map(OrderItem::desc).collect(Collectors.toList());
+        return CollectionUtils.toList(Arrays.asList(columns), OrderItem::desc);
     }
 
     private static OrderItem build(String column, boolean asc) {

@@ -43,8 +43,10 @@ public class DdlApplicationRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         if (CollectionUtils.isNotEmpty(ddlList)) {
             log.debug("  ...  DDL start create  ...  ");
-            ddlList.forEach(ddl -> ddl.runScript(dataSource -> DdlHelper.runScript(ddl.getDdlGenerator(),
-                dataSource, ddl.getSqlFiles(), true)));
+            for (IDdl ddl : ddlList) {
+                ddl.runScript(dataSource -> DdlHelper.runScript(ddl.getDdlGenerator(),
+                    dataSource, ddl.getSqlFiles(), true));
+            }
             log.debug("  ...  DDL end create  ...  ");
         }
     }

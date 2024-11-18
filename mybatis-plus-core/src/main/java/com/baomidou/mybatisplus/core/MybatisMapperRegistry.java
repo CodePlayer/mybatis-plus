@@ -49,15 +49,25 @@ public class MybatisMapperRegistry extends MapperRegistry {
         // fix https://github.com/baomidou/mybatis-plus/issues/4247
         MybatisMapperProxyFactory<T> mapperProxyFactory = (MybatisMapperProxyFactory<T>) knownMappers.get(type);
         if (mapperProxyFactory == null) {
-            mapperProxyFactory = (MybatisMapperProxyFactory<T>) knownMappers.entrySet().stream()
-                .filter(t -> t.getKey().getName().equals(type.getName())).findFirst().map(Map.Entry::getValue)
-                .orElseThrow(() -> new BindingException("Type " + type + " is not known to the MybatisPlusMapperRegistry."));
+            mapperProxyFactory = findByName(type);
+            if (mapperProxyFactory == null) {
+                throw new BindingException("Type " + type + " is not known to the MybatisPlusMapperRegistry.");
+            }
         }
         try {
             return mapperProxyFactory.newInstance(sqlSession);
         } catch (Exception e) {
             throw new BindingException("Error getting mapper instance. Cause: " + e, e);
         }
+    }
+
+    private <T> MybatisMapperProxyFactory<T> findByName(Class<T> type) {
+        for (Map.Entry<Class<?>, MybatisMapperProxyFactory<?>> entry : knownMappers.entrySet()) {
+            if (entry.getKey().getName().equals(type.getName())) {
+                return  (MybatisMapperProxyFactory<T>) entry.getValue();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -69,8 +79,9 @@ public class MybatisMapperRegistry extends MapperRegistry {
      * 清空 Mapper 缓存信息
      */
     protected <T> void removeMapper(Class<T> type) {
-        knownMappers.entrySet().stream().filter(t -> t.getKey().getName().equals(type.getName()))
-            .findFirst().ifPresent(t -> knownMappers.remove(t.getKey()));
+        if (findByName(type) != null) {
+            knownMappers.remove(type);
+        }
     }
 
     @Override

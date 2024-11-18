@@ -168,8 +168,11 @@ public final class ReflectionKit {
                 throw new IllegalStateException(String.format("Duplicate key %s", u));
             },
             LinkedHashMap::new));
-        superFieldList.stream().filter(field -> !fieldMap.containsKey(field.getName()))
-            .forEach(f -> fieldMap.put(f.getName(), f));
+        for (Field field : superFieldList) {
+            if (!fieldMap.containsKey(field.getName())) {
+                fieldMap.put(field.getName(), field);
+            }
+        }
         return fieldMap;
     }
 

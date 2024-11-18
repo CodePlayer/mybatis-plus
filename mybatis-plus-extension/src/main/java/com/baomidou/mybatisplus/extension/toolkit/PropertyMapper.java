@@ -73,13 +73,17 @@ public class PropertyMapper {
             return Collections.emptyMap();
         }
         Map<String, Properties> map = CollectionUtils.newHashMap();
-        inner.forEach(i -> {
-            Properties p = new Properties();
+        for (String i : inner) {
+             Properties p = new Properties();
             String key = i.substring(group.length()) + StringPool.COLON;
             int keyIndex = key.length();
-            keys.stream().filter(j -> j.startsWith(key)).forEach(j -> p.setProperty(j.substring(keyIndex), delegate.getProperty(j)));
+            for (String j : keys) {
+                if (j.startsWith(key)) {
+                    p.setProperty(j.substring(keyIndex), delegate.getProperty(j));
+                }
+            }
             map.put(delegate.getProperty(i), p);
-        });
+        }
         return map;
     }
 }

@@ -243,7 +243,7 @@ public class TableInfo {
             this.importPackages.add(IdType.class.getCanonicalName());
             this.importPackages.add(TableId.class.getCanonicalName());
         }
-        this.fields.forEach(field -> {
+        for (TableField field : this.fields) {
             IColumnType columnType = field.getColumnType();
             if (null != columnType && null != columnType.getPkg()) {
                 importPackages.add(columnType.getPkg());
@@ -273,7 +273,7 @@ public class TableInfo {
             if (field.isLogicDeleteField()) {
                 this.importPackages.add(TableLogic.class.getCanonicalName());
             }
-        });
+        }
     }
 
     /**

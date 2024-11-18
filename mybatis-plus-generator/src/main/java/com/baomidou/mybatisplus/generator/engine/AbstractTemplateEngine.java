@@ -68,15 +68,15 @@ public abstract class AbstractTemplateEngine {
     protected void outputCustomFile(@NotNull List<CustomFile> customFiles, @NotNull TableInfo tableInfo, @NotNull Map<String, Object> objectMap) {
         String entityName = tableInfo.getEntityName();
         String parentPath = getPathInfo(OutputFile.parent);
-        customFiles.forEach(file -> {
+        for (CustomFile file : customFiles) {
             String filePath = StringUtils.isNotBlank(file.getFilePath()) ? file.getFilePath() : parentPath;
             if (StringUtils.isNotBlank(file.getPackageName())) {
-                filePath = filePath + File.separator + file.getPackageName().replaceAll("\\.", StringPool.BACK_SLASH + File.separator);
+                filePath = filePath + File.separator + file.getPackageName().replace(".", StringPool.BACK_SLASH + File.separator);
             }
             Function<TableInfo, String> formatNameFunction = file.getFormatNameFunction();
             String fileName = filePath + File.separator + (null != formatNameFunction ? formatNameFunction.apply(tableInfo) : entityName) + file.getFileName();
             outputFile(new File(fileName), objectMap, file.getTemplatePath(), file.isFileOverride());
-        });
+        }
     }
 
     /**
@@ -231,14 +231,15 @@ public abstract class AbstractTemplateEngine {
         try {
             ConfigBuilder config = this.getConfigBuilder();
             List<TableInfo> tableInfoList = config.getTableInfoList();
-            tableInfoList.forEach(tableInfo -> {
+            for (TableInfo tableInfo : tableInfoList) {
                 Map<String, Object> objectMap = this.getObjectMap(config, tableInfo);
-                Optional.ofNullable(config.getInjectionConfig()).ifPresent(t -> {
+                InjectionConfig t = config.getInjectionConfig();
+                if (t != null) {
                     // 添加自定义属性
                     t.beforeOutputFile(tableInfo, objectMap);
                     // 输出自定义文件
                     outputCustomFile(t.getCustomFiles(), tableInfo, objectMap);
-                });
+                }
                 // entity
                 outputEntity(tableInfo, objectMap);
                 // mapper and xml
@@ -247,7 +248,7 @@ public abstract class AbstractTemplateEngine {
                 outputService(tableInfo, objectMap);
                 // controller
                 outputController(tableInfo, objectMap);
-            });
+            }
         } catch (Exception e) {
             throw new RuntimeException("无法创建文件，请检查配置信息！", e);
         }
@@ -374,4 +375,5 @@ public abstract class AbstractTemplateEngine {
         this.configBuilder = configBuilder;
         return this;
     }
+
 }

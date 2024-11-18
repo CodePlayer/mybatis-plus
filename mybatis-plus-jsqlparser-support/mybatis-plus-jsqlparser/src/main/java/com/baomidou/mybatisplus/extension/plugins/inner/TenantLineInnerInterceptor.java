@@ -87,7 +87,9 @@ public class TenantLineInnerInterceptor extends BaseMultiTableInnerInterceptor i
         processSelectBody(select, whereSegment);
         List<WithItem> withItemsList = select.getWithItemsList();
         if (!CollectionUtils.isEmpty(withItemsList)) {
-            withItemsList.forEach(withItem -> processSelectBody(withItem, whereSegment));
+            for (WithItem withItem : withItemsList) {
+                processSelectBody(withItem, whereSegment);
+            }
         }
     }
 
@@ -156,11 +158,13 @@ public class TenantLineInnerInterceptor extends BaseMultiTableInnerInterceptor i
         }
         List<UpdateSet> sets = update.getUpdateSets();
         if (!CollectionUtils.isEmpty(sets)) {
-            sets.forEach(us -> us.getValues().forEach(ex -> {
-                if (ex instanceof Select) {
-                    processSelectBody(((Select) ex), (String) obj);
+            for (UpdateSet us : sets) {
+                for (Expression ex : us.getValues()) {
+                    if (ex instanceof Select) {
+                        processSelectBody(((Select) ex), (String) obj);
+                    }
                 }
-            }));
+            }
         }
         update.setWhere(this.andExpression(table, update.getWhere(), (String) obj));
     }
@@ -185,7 +189,7 @@ public class TenantLineInnerInterceptor extends BaseMultiTableInnerInterceptor i
      * @param selectBody SelectBody
      */
     protected void processInsertSelect(Select selectBody, final String whereSegment) {
-        if(selectBody instanceof PlainSelect){
+        if (selectBody instanceof PlainSelect) {
             PlainSelect plainSelect = (PlainSelect) selectBody;
             FromItem fromItem = plainSelect.getFromItem();
             if (fromItem instanceof Table) {
@@ -197,7 +201,7 @@ public class TenantLineInnerInterceptor extends BaseMultiTableInnerInterceptor i
                 appendSelectItem(plainSelect.getSelectItems());
                 processInsertSelect(subSelect, whereSegment);
             }
-        } else if(selectBody instanceof ParenthesedSelect){
+        } else if (selectBody instanceof ParenthesedSelect) {
             ParenthesedSelect parenthesedSelect = (ParenthesedSelect) selectBody;
             processInsertSelect(parenthesedSelect.getSelect(), whereSegment);
 
@@ -262,4 +266,5 @@ public class TenantLineInnerInterceptor extends BaseMultiTableInnerInterceptor i
         }
         return new EqualsTo(getAliasColumn(table), tenantLineHandler.getTenantId());
     }
+
 }

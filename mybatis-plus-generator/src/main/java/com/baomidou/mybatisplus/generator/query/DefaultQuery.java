@@ -68,7 +68,7 @@ public class DefaultQuery extends AbstractDatabaseQuery {
             //需要反向生成或排除的表信息
             List<TableInfo> includeTableList = new ArrayList<>();
             List<TableInfo> excludeTableList = new ArrayList<>();
-            tables.forEach(table -> {
+            for (DatabaseMetaDataWrapper.Table table : tables) {
                 String tableName = table.getName();
                 if (StringUtils.isNotBlank(tableName)) {
                     TableInfo tableInfo = new TableInfo(this.configBuilder, tableName);
@@ -80,7 +80,7 @@ public class DefaultQuery extends AbstractDatabaseQuery {
                     }
                     tableList.add(tableInfo);
                 }
-            });
+            }
             filter(tableList, includeTableList, excludeTableList);
             // 性能优化，只处理需执行表字段 https://github.com/baomidou/mybatis-plus/issues/219
             tableList.forEach(this::convertTableFields);
@@ -106,7 +106,7 @@ public class DefaultQuery extends AbstractDatabaseQuery {
         String tableName = tableInfo.getName();
         Map<String, DatabaseMetaDataWrapper.Column> columnsInfoMap = getColumnsInfo(tableName);
         Entity entity = strategyConfig.entity();
-        columnsInfoMap.forEach((k, columnInfo) -> {
+        for (DatabaseMetaDataWrapper.Column columnInfo : columnsInfoMap.values()) {
             String columnName = columnInfo.getName();
             TableField field = new TableField(this.configBuilder, columnName);
             // 处理ID
@@ -131,11 +131,12 @@ public class DefaultQuery extends AbstractDatabaseQuery {
             field.setPropertyName(propertyName, columnType);
             field.setMetaInfo(metaInfo);
             tableInfo.addField(field);
-        });
+        }
         tableInfo.processTable();
     }
 
     protected Map<String, DatabaseMetaDataWrapper.Column> getColumnsInfo(String tableName) {
         return databaseMetaDataWrapper.getColumnsInfo(tableName, true);
     }
+
 }

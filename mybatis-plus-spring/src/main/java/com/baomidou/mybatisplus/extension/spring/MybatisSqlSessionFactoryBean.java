@@ -101,7 +101,6 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
 
     private String environment = SqlSessionFactoryBean.class.getSimpleName();
 
-
     private boolean failFast;
 
     private Interceptor[] plugins;
@@ -269,8 +268,6 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
         this.typeHandlersPackage = typeHandlersPackage;
     }
 
-
-
     /**
      * Set type handlers. They must be annotated with {@code MappedTypes} and optionally with {@code MappedJdbcTypes}
      *
@@ -280,6 +277,7 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
     public void setTypeHandlers(TypeHandler<?>... typeHandlers) {
         this.typeHandlers = typeHandlers;
     }
+
     /**
      * Set the default type handler class for enum.
      *
@@ -290,6 +288,7 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
         @SuppressWarnings("rawtypes") Class<? extends TypeHandler> defaultEnumTypeHandler) {
         this.defaultEnumTypeHandler = defaultEnumTypeHandler;
     }
+
     /**
      * List of type aliases to register. They can be annotated with {@code Alias}
      *
@@ -430,6 +429,7 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
     public void setEnvironment(String environment) {
         this.environment = environment;
     }
+
     /**
      * Set scripting language drivers.
      *
@@ -543,7 +543,6 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
         this.sqlSessionFactory = buildSqlSessionFactory();
     }
 
-
     /**
      * Build a {@code SqlSessionFactory} instance.
      * <p>
@@ -586,48 +585,53 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
         Optional.ofNullable(this.vfs).ifPresent(targetConfiguration::setVfsImpl);
 
         if (hasLength(this.typeAliasesPackage)) {
-            scanClasses(this.typeAliasesPackage, this.typeAliasesSuperType).stream()
-                .filter(clazz -> !clazz.isAnonymousClass()).filter(clazz -> !clazz.isInterface())
-                .filter(clazz -> !clazz.isMemberClass()).forEach(targetConfiguration.getTypeAliasRegistry()::registerAlias);
+            for (Class<?> clazz : scanClasses(this.typeAliasesPackage, this.typeAliasesSuperType)) {
+                if (!clazz.isAnonymousClass() && !clazz.isInterface() && !clazz.isMemberClass()) {
+                    targetConfiguration.getTypeAliasRegistry().registerAlias(clazz);
+                }
+            }
         }
 
         if (!isEmpty(this.typeAliases)) {
-            Stream.of(this.typeAliases).forEach(typeAlias -> {
+            for (Class<?> typeAlias : this.typeAliases) {
                 targetConfiguration.getTypeAliasRegistry().registerAlias(typeAlias);
                 LOGGER.debug(() -> "Registered type alias: '" + typeAlias + "'");
-            });
+            }
         }
 
         if (!isEmpty(this.plugins)) {
-            Stream.of(this.plugins).forEach(plugin -> {
+            for (Interceptor plugin : this.plugins) {
                 targetConfiguration.addInterceptor(plugin);
                 LOGGER.debug(() -> "Registered plugin: '" + plugin + "'");
-            });
+            }
         }
 
         if (hasLength(this.typeHandlersPackage)) {
-            scanClasses(this.typeHandlersPackage, TypeHandler.class).stream().filter(clazz -> !clazz.isAnonymousClass())
-                .filter(clazz -> !clazz.isInterface()).filter(clazz -> !Modifier.isAbstract(clazz.getModifiers()))
-                .forEach(targetConfiguration.getTypeHandlerRegistry()::register);
+            for (Class<?> clazz : scanClasses(this.typeHandlersPackage, TypeHandler.class)) {
+                if (!clazz.isAnonymousClass() && !clazz.isInterface() && !Modifier.isAbstract(clazz.getModifiers())) {
+                    targetConfiguration.getTypeHandlerRegistry().register(clazz);
+                }
+            }
         }
 
         if (!isEmpty(this.typeHandlers)) {
-            Stream.of(this.typeHandlers).forEach(typeHandler -> {
+            for (TypeHandler<?> typeHandler : this.typeHandlers) {
                 targetConfiguration.getTypeHandlerRegistry().register(typeHandler);
                 LOGGER.debug(() -> "Registered type handler: '" + typeHandler + "'");
-            });
+            }
         }
 
         targetConfiguration.setDefaultEnumTypeHandler(defaultEnumTypeHandler);
 
         if (!isEmpty(this.scriptingLanguageDrivers)) {
-            Stream.of(this.scriptingLanguageDrivers).forEach(languageDriver -> {
+            for (LanguageDriver languageDriver : this.scriptingLanguageDrivers) {
                 targetConfiguration.getLanguageRegistry().register(languageDriver);
                 LOGGER.debug(() -> "Registered scripting language driver: '" + languageDriver + "'");
-            });
+            }
         }
-        Optional.ofNullable(this.defaultScriptingLanguageDriver)
-            .ifPresent(targetConfiguration::setDefaultScriptingLanguage);
+        if (this.defaultScriptingLanguageDriver != null) {
+            targetConfiguration.setDefaultScriptingLanguage(this.defaultScriptingLanguageDriver);
+        }
 
         if (this.databaseIdProvider != null) {// fix #64 set databaseId before parse mapper xmls
             try {
@@ -752,4 +756,5 @@ public class MybatisSqlSessionFactoryBean implements FactoryBean<SqlSessionFacto
         }
         return classes;
     }
+
 }

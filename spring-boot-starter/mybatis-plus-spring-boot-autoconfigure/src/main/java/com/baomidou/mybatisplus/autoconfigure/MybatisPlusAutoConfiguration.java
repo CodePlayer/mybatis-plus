@@ -145,7 +145,9 @@ public class MybatisPlusAutoConfiguration implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         if (!CollectionUtils.isEmpty(mybatisPlusPropertiesCustomizers)) {
-            mybatisPlusPropertiesCustomizers.forEach(i -> i.customize(properties));
+            for (MybatisPlusPropertiesCustomizer i : mybatisPlusPropertiesCustomizers) {
+                i.customize(properties);
+            }
         }
         checkConfigFileExists();
     }
@@ -236,8 +238,7 @@ public class MybatisPlusAutoConfiguration implements InitializingBean {
     private <T> void getBeansThen(Class<T> clazz, Consumer<List<T>> consumer) {
         if (this.applicationContext.getBeanNamesForType(clazz, false, false).length > 0) {
             final Map<String, T> beansOfType = this.applicationContext.getBeansOfType(clazz);
-            List<T> clazzList = new ArrayList<>();
-            beansOfType.forEach((k, v) -> clazzList.add(v));
+	        List<T> clazzList = new ArrayList<>(beansOfType.values());
             consumer.accept(clazzList);
         }
     }

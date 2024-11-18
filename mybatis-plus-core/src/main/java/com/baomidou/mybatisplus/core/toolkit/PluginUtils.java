@@ -81,7 +81,9 @@ public abstract class PluginUtils {
      * @param additionalParameters additionalParameters
      */
     public static void setAdditionalParameter(BoundSql boundSql, Map<String, Object> additionalParameters) {
-        additionalParameters.forEach(boundSql::setAdditionalParameter);
+        for (Map.Entry<String, Object> entry : additionalParameters.entrySet()) {
+            boundSql.setAdditionalParameter(entry.getKey(), entry.getValue());
+        }
     }
 
     public static MPBoundSql mpBoundSql(BoundSql boundSql) {

@@ -15,8 +15,7 @@
  */
 package com.baomidou.mybatisplus.core.handlers;
 
-import com.baomidou.mybatisplus.core.metadata.TableInfo;
-import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import com.baomidou.mybatisplus.core.metadata.*;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.MetaObject;
 
@@ -194,14 +193,17 @@ public interface MetaObjectHandler {
      */
     default MetaObjectHandler strictFill(boolean insertFill, TableInfo tableInfo, MetaObject metaObject, List<StrictFill<?, ?>> strictFills) {
         if ((insertFill && tableInfo.isWithInsertFill()) || (!insertFill && tableInfo.isWithUpdateFill())) {
-            strictFills.forEach(i -> {
+            for (StrictFill<?, ?> i : strictFills) {
                 final String fieldName = i.getFieldName();
                 final Class<?> fieldType = i.getFieldType();
-                tableInfo.getFieldList().stream()
-                    .filter(j -> j.getProperty().equals(fieldName) && fieldType.equals(j.getPropertyType()) &&
-                        ((insertFill && j.isWithInsertFill()) || (!insertFill && j.isWithUpdateFill()))).findFirst()
-                    .ifPresent(j -> strictFillStrategy(metaObject, fieldName, i.getFieldVal()));
-            });
+                for (TableFieldInfo j : tableInfo.getFieldList()) {
+                    if (j.getProperty().equals(fieldName) && fieldType.equals(j.getPropertyType()) &&
+                        ((insertFill && j.isWithInsertFill()) || (!insertFill && j.isWithUpdateFill()))) {
+                        strictFillStrategy(metaObject, fieldName, i.getFieldVal());
+                        break;
+                    }
+                }
+            }
         }
         return this;
     }

@@ -98,7 +98,9 @@ public class DataPermissionInterceptor extends BaseMultiTableInnerInterceptor im
             processSelectBody(select, whereSegment);
             List<WithItem> withItemsList = select.getWithItemsList();
             if (!CollectionUtils.isEmpty(withItemsList)) {
-                withItemsList.forEach(withItem -> processSelectBody(withItem, whereSegment));
+                for (WithItem withItem : withItemsList) {
+                    processSelectBody(withItem, whereSegment);
+                }
             }
         } else {
             // 兼容原来的旧版 DataPermissionHandler 场景
@@ -107,7 +109,9 @@ public class DataPermissionInterceptor extends BaseMultiTableInnerInterceptor im
             } else if (select instanceof SetOperationList) {
                 SetOperationList setOperationList = (SetOperationList) select;
                 List<Select> selectBodyList = setOperationList.getSelects();
-                selectBodyList.forEach(s -> this.setWhere((PlainSelect) s, (String) obj));
+                for (Select s : selectBodyList) {
+                    this.setWhere((PlainSelect) s, (String) obj);
+                }
             }
         }
     }
@@ -172,4 +176,5 @@ public class DataPermissionInterceptor extends BaseMultiTableInnerInterceptor im
         final MultiDataPermissionHandler handler = (MultiDataPermissionHandler) dataPermissionHandler;
         return handler.getSqlSegment(table, where, whereSegment);
     }
+
 }

@@ -60,7 +60,9 @@ public abstract class BaseMultiTableInnerInterceptor extends JsqlParserSupport i
             SetOperationList operationList = (SetOperationList) selectBody;
             List<Select> selectBodyList = operationList.getSelects();
             if (CollectionUtils.isNotEmpty(selectBodyList)) {
-                selectBodyList.forEach(body -> processSelectBody(body, whereSegment));
+                for (Select body : selectBodyList) {
+                    processSelectBody(body, whereSegment);
+                }
             }
         }
     }
@@ -91,7 +93,9 @@ public abstract class BaseMultiTableInnerInterceptor extends JsqlParserSupport i
         //#3087 github
         List<SelectItem<?>> selectItems = plainSelect.getSelectItems();
         if (CollectionUtils.isNotEmpty(selectItems)) {
-            selectItems.forEach(selectItem -> processSelectItem(selectItem, whereSegment));
+            for (SelectItem<?> selectItem : selectItems) {
+                processSelectItem(selectItem, whereSegment);
+            }
         }
 
         // 处理 where 中的子查询
@@ -218,7 +222,7 @@ public abstract class BaseMultiTableInnerInterceptor extends JsqlParserSupport i
     protected void processFunction(Function function, final String whereSegment) {
         ExpressionList<?> parameters = function.getParameters();
         if (parameters != null) {
-            parameters.forEach(expression -> {
+            for (Expression expression : parameters) {
                 if (expression instanceof Select) {
                     processSelectBody(((Select) expression), whereSegment);
                 } else if (expression instanceof Function) {
@@ -231,7 +235,7 @@ public abstract class BaseMultiTableInnerInterceptor extends JsqlParserSupport i
                         processSelectBody(((Select) ((EqualsTo) expression).getRightExpression()), whereSegment);
                     }
                 }
-            });
+            }
         }
     }
 

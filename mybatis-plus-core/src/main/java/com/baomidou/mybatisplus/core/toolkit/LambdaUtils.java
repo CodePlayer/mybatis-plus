@@ -15,8 +15,7 @@
  */
 package com.baomidou.mybatisplus.core.toolkit;
 
-import com.baomidou.mybatisplus.core.metadata.TableInfo;
-import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import com.baomidou.mybatisplus.core.metadata.*;
 import com.baomidou.mybatisplus.core.toolkit.support.*;
 
 import java.lang.invoke.SerializedLambda;
@@ -102,10 +101,9 @@ public final class LambdaUtils {
         } else {
             map = CollectionUtils.newHashMapWithExpectedSize(info.getFieldList().size());
         }
-
-        info.getFieldList().forEach(i ->
-                map.put(formatKey(i.getProperty()), new ColumnCache(i.getColumn(), i.getSqlSelect(), i.getMapping()))
-        );
+        for (TableFieldInfo i : info.getFieldList()) {
+            map.put(formatKey(i.getProperty()), new ColumnCache(i.getColumn(), i.getSqlSelect(), i.getMapping()));
+        }
         return map;
     }
 

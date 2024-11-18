@@ -110,15 +110,13 @@ public abstract class AbstractWrapper<T, R, Children extends AbstractWrapper<T, 
     @Override
     public <V> Children allEq(boolean condition, Map<R, V> params, boolean null2IsNull) {
         if (condition && CollectionUtils.isNotEmpty(params)) {
-            params.forEach((k, v) -> {
-                if (StringUtils.checkValNotNull(v)) {
-                    eq(k, v);
-                } else {
-                    if (null2IsNull) {
-                        isNull(k);
-                    }
+            for (Map.Entry<R, V> entry : params.entrySet()) {
+                if (StringUtils.checkValNotNull(entry.getValue())) {
+                    eq(entry.getKey(), entry.getValue());
+                } else if (null2IsNull) {
+                    isNull(entry.getKey());
                 }
-            });
+            }
         }
         return typedThis;
     }
@@ -126,17 +124,17 @@ public abstract class AbstractWrapper<T, R, Children extends AbstractWrapper<T, 
     @Override
     public <V> Children allEq(boolean condition, BiPredicate<R, V> filter, Map<R, V> params, boolean null2IsNull) {
         if (condition && CollectionUtils.isNotEmpty(params)) {
-            params.forEach((k, v) -> {
+            for (Map.Entry<R, V> entry : params.entrySet()) {
+                R k = entry.getKey();
+                V v = entry.getValue();
                 if (filter.test(k, v)) {
                     if (StringUtils.checkValNotNull(v)) {
                         eq(k, v);
-                    } else {
-                        if (null2IsNull) {
-                            isNull(k);
-                        }
+                    } else if (null2IsNull) {
+                        isNull(k);
                     }
                 }
-            });
+            }
         }
         return typedThis;
     }
@@ -374,7 +372,6 @@ public abstract class AbstractWrapper<T, R, Children extends AbstractWrapper<T, 
         });
     }
 
-
     public Children doOrderBy(boolean condition, boolean isAsc, R column, List<R> columns) {
         return maybeDo(condition, () -> {
             final SqlKeyword mode = isAsc ? ASC : DESC;
@@ -382,8 +379,9 @@ public abstract class AbstractWrapper<T, R, Children extends AbstractWrapper<T, 
                 appendSqlSegments(ORDER_BY, columnToSqlSegment(column), mode);
             }
             if (CollectionUtils.isNotEmpty(columns)) {
-                columns.forEach(c -> appendSqlSegments(ORDER_BY,
-                    columnToSqlSegment(c), mode));
+                for (R c : columns) {
+                    appendSqlSegments(ORDER_BY, columnToSqlSegment(c), mode);
+                }
             }
         });
     }
@@ -416,8 +414,11 @@ public abstract class AbstractWrapper<T, R, Children extends AbstractWrapper<T, 
 
     @Override
     public Children orderBy(boolean condition, boolean isAsc, List<R> columns) {
-        return maybeDo(condition, () -> columns.forEach(c -> appendSqlSegments(ORDER_BY,
-            columnToSqlSegment(c), isAsc ? ASC : DESC)));
+        return maybeDo(condition, () -> {
+            for (R c : columns) {
+                appendSqlSegments(ORDER_BY, columnToSqlSegment(c), isAsc ? ASC : DESC);
+            }
+        });
     }
 
     @Override
@@ -578,7 +579,7 @@ public abstract class AbstractWrapper<T, R, Children extends AbstractWrapper<T, 
      */
     protected void initNeed() {
         paramNameSeq = new AtomicInteger(0);
-        paramNameValuePairs = new HashMap<>(16);
+        paramNameValuePairs = new HashMap<>();
         expression = new MergeSegments();
         lastSql = SharedString.emptyString();
         sqlComment = SharedString.emptyString();
@@ -707,5 +708,7 @@ public abstract class AbstractWrapper<T, R, Children extends AbstractWrapper<T, 
     public interface DoSomething {
 
         void doIt();
+
     }
+
 }

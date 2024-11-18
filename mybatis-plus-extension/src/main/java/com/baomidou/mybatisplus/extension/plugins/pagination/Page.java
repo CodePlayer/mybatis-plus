@@ -194,11 +194,11 @@ public class Page<T> implements IPage<T> {
      */
     private String[] mapOrderToArray(Predicate<OrderItem> filter) {
         List<String> columns = new ArrayList<>(orders.size());
-        orders.forEach(i -> {
+        for (OrderItem i : orders) {
             if (filter.test(i)) {
                 columns.add(i.getColumn());
             }
-        });
+        }
         return columns.toArray(new String[0]);
     }
 

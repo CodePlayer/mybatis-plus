@@ -205,12 +205,12 @@ public class MybatisParameterHandler extends DefaultParameterHandler {
             Collection<Object> parameters = new ArrayList<>();
             Map<String, Object> parameterMap = (Map) parameterObject;
             Set<Object> objectSet = new HashSet<>();
-            parameterMap.forEach((k, v) -> {
+            for (Object v : parameterMap.values()) {
                 if (objectSet.add(v)) {
                     Collection<Object> collection = toCollection(v);
                     parameters.addAll(collection);
                 }
-            });
+            }
             return parameters;
         } else {
             return Collections.singleton(parameterObject);

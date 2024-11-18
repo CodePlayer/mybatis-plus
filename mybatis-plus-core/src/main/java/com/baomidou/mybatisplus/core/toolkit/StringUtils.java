@@ -200,7 +200,7 @@ public final class StringUtils {
         if (isBlank(param)) {
             return StringPool.EMPTY;
         }
-        return param.substring(0, 1).toLowerCase() + param.substring(1);
+        return new StringBuilder(param.length()).append(Character.toLowerCase(param.charAt(0))).append(param, 1, param.length()).toString();
     }
 
     /**
