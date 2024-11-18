@@ -164,12 +164,12 @@ public class MybatisConfiguration extends Configuration {
             // 清空 Mapper 方法 mappedStatement 缓存信息
             String typeKey = type.getName() + StringPool.DOT;
             String simpleName = type.getSimpleName();
-            mappedStatements.keySet().stream().filter(ms -> ms.startsWith(typeKey) || ms.equals(simpleName)).collect(Collectors.toSet()).forEach(mappedStatements::remove);
-            resultMaps.keySet().stream().filter(r -> r.startsWith(typeKey)).collect(Collectors.toSet()).forEach(resultMaps::remove);
-            parameterMaps.keySet().stream().filter(p -> p.startsWith(typeKey)).collect(Collectors.toSet()).forEach(parameterMaps::remove);
-            keyGenerators.keySet().stream().filter(k -> k.startsWith(typeKey)).collect(Collectors.toSet()).forEach(keyGenerators::remove);
-            sqlFragments.keySet().stream().filter(s -> s.startsWith(typeKey)).collect(Collectors.toSet()).forEach(sqlFragments::remove);
-            caches.keySet().stream().filter(p -> p.equals(type.getName()) || p.equals(simpleName)).collect(Collectors.toSet()).forEach(caches::remove);
+            mappedStatements.keySet().stream().filter(ms -> ms.startsWith(typeKey) || ms.equals(simpleName)).forEach(mappedStatements::remove);
+            resultMaps.keySet().stream().filter(r -> r.startsWith(typeKey)).forEach(resultMaps::remove);
+            parameterMaps.keySet().stream().filter(p -> p.startsWith(typeKey)).forEach(parameterMaps::remove);
+            keyGenerators.keySet().stream().filter(k -> k.startsWith(typeKey)).forEach(keyGenerators::remove);
+            sqlFragments.keySet().stream().filter(s -> s.startsWith(typeKey)).forEach(sqlFragments::remove);
+            caches.keySet().stream().filter(p -> p.equals(type.getName()) || p.equals(simpleName)).forEach(caches::remove);
         }
     }
 
