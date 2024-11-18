@@ -272,7 +272,7 @@ public class DbQueryDecorator extends AbstractDbQuery {
          * @return 格式化内容
          */
         public String formatComment(String comment) {
-            return StringUtils.isBlank(comment) ? StringPool.EMPTY : comment.replaceAll("\r\n", "\t");
+            return StringUtils.isBlank(comment) ? StringPool.EMPTY : comment.replace("\r\n", "\t");
         }
 
         /**

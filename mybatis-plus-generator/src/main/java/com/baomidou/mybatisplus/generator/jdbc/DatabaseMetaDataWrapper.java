@@ -138,7 +138,7 @@ public class DatabaseMetaDataWrapper {
     }
 
     public String formatComment(String comment) {
-        return StringUtils.isBlank(comment) ? StringPool.EMPTY : comment.replaceAll("\r\n", "\t");
+        return StringUtils.isBlank(comment) ? StringPool.EMPTY : comment.replace("\r\n", "\t");
     }
 
     public Table getTableInfo(String tableName) {

@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import com.baomidou.mybatisplus.core.toolkit.Constants;
 import net.sf.jsqlparser.statement.select.Values;
@@ -252,14 +253,12 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
 
     private Optional<OperationResult> ignoredTableColumns(String table, String operation) {
         final Set<String> ignoredColumns = ignoredTableColumns.get(table.toUpperCase());
-        if (ignoredColumns != null) {
-            if (ignoredColumns.stream().anyMatch("*"::equals)) {
-                OperationResult result = new OperationResult();
-                result.setOperation(operation);
-                result.setTableName(table + ":*");
-                result.setRecordStatus(false);
-                return Optional.of(result);
-            }
+        if (ignoredColumns != null && ignoredColumns.contains("*")) {
+            OperationResult result = new OperationResult();
+            result.setOperation(operation);
+            result.setTableName(table + ":*");
+            result.setRecordStatus(false);
+            return Optional.of(result);
         }
         return Optional.empty();
     }
@@ -318,9 +317,12 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
             columnNameValMap.putAll(detectInsertColumnValuesNonJdbcParameters(insert));
         }
         Map<String, String> relatedColumnsUpperCaseWithoutUnderline = new HashMap<>(selectItemsFromUpdateSql.size(), 1);
-        for (Column item : selectItemsFromUpdateSql) {
-            //FIRSTNAME: FIRST_NAME/FIRST-NAME/FIRST$NAME/FIRST.NAME
-            relatedColumnsUpperCaseWithoutUnderline.put(item.getColumnName().replaceAll("[._\\-$]", "").toUpperCase(), item.getColumnName().toUpperCase());
+        if (!selectItemsFromUpdateSql.isEmpty()) {
+            final Pattern regex = Pattern.compile("[._\\-$]"); // 如果使用频率很高，最好是定义为静态变量
+            for (Column item : selectItemsFromUpdateSql) {
+                //FIRSTNAME: FIRST_NAME/FIRST-NAME/FIRST$NAME/FIRST.NAME
+                relatedColumnsUpperCaseWithoutUnderline.put(regex.matcher(item.getColumnName()).replaceAll("").toUpperCase(), item.getColumnName().toUpperCase());
+            }
         }
         MetaObject metaObject = SystemMetaObject.forObject(updateSql.getParameterObject());
         int index = 0;
@@ -405,7 +407,7 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
             return;
         }
         MetaObject mpgenVal = SystemMetaObject.forObject(updateSql.getParameterObject());
-        if(!mpgenVal.hasGetter(Constants.WRAPPER)){
+        if (!mpgenVal.hasGetter(Constants.WRAPPER)) {
             return;
         }
         Object ew = mpgenVal.getValue(Constants.WRAPPER);
@@ -453,13 +455,11 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
                 return columnNameValMap;
             }
             Values valuesStatement = (Values) selectBody;
-            if (valuesStatement.getExpressions() instanceof ExpressionList) {
-                ExpressionList expressionList = valuesStatement.getExpressions();
-                List<Expression> expressions = expressionList;
+            if (valuesStatement.getExpressions() != null) { // 本身就是 ExpressionList 类型
+                List<Expression> expressions = (ExpressionList) valuesStatement.getExpressions();
                 for (Expression expression : expressions) {
                     if (expression instanceof RowConstructor) {
-                        final ExpressionList exprList = ((RowConstructor) expression);
-                        final List<Expression> insertExpList = exprList;
+                        final List<Expression> insertExpList = (List<Expression>) expression;
                         for (int i = 0; i < insertExpList.size(); ++i) {
                             Expression e = insertExpList.get(i);
                             if (!(e instanceof JdbcParameter)) {
@@ -493,7 +493,6 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
         return propertyName;
     }
 
-
     private Map<String, Object> buildParameterObjectMap(BoundSql boundSql) {
         MetaObject metaObject = PluginUtils.getMetaObject(boundSql.getParameterObject());
         Map<String, Object> propertyValMap = new HashMap<>(boundSql.getParameterMappings().size());
@@ -508,7 +507,6 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
         return propertyValMap;
 
     }
-
 
     private String buildOriginalData(Select selectStmt, MappedStatement mappedStatement, BoundSql boundSql, Connection connection) {
         try (PreparedStatement statement = connection.prepareStatement(selectStmt.toString())) {
@@ -652,7 +650,6 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
         }
         return changedRecord;
     }
-
 
     private Columns2SelectItemsResult buildColumns2SelectItems(String tableName, List<Column> columns) {
         if (columns == null || columns.isEmpty()) {
@@ -819,6 +816,7 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
                 "\"changedData\":" + changedData + "," +
                 "\"cost(ms)\":" + cost + "}";
         }
+
     }
 
     @Data
@@ -840,6 +838,7 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
             result.setAdditionalItemCount(additionalItemCount);
             return result;
         }
+
     }
 
     @Data
@@ -916,9 +915,8 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
         }
 
         public String generateDataStr() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("\"").append(columnName).append("\"").append(":").append("\"").append(convertDoubleQuotes(originalValue)).append("->").append(convertDoubleQuotes(updateValue)).append("\"").append(",");
-            return sb.toString();
+            // "+" 拼接底层就是 StringBuilder + append()，而在 JDK 9+ 中，Java 编译器还会利用新的指令优化 "+" 的拼接性能
+	        return "\"" + columnName + "\":\"" + convertDoubleQuotes(originalValue) + "->" + convertDoubleQuotes(updateValue) + "\",";
         }
 
         public String convertDoubleQuotes(Object obj) {
@@ -927,6 +925,7 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
             }
             return obj.toString().replace("\"", "\\\"");
         }
+
     }
 
     @Data
@@ -977,6 +976,7 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
             }
             return obj.toString().replace("\"", "\\\"");
         }
+
     }
 
     public static class DataUpdateLimitationException extends MybatisPlusException {
@@ -986,5 +986,7 @@ public class DataChangeRecorderInnerInterceptor implements InnerInterceptor {
         }
 
         public static DataUpdateLimitationException DEFAULT = new DataUpdateLimitationException("本次操作 因超过系统安全阈值 被拦截，如需继续，请联系管理员!");
+
     }
+
 }

@@ -593,7 +593,7 @@ public final class StringUtils {
      */
     public static String sqlInjectionReplaceBlank(String str) {
         if (SqlInjectionUtils.check(str)) {
-            /**
+            /*
              * 过滤sql黑名单字符，存在 SQL 注入，去除空白内容
              */
             str = replaceAllBlank(str);

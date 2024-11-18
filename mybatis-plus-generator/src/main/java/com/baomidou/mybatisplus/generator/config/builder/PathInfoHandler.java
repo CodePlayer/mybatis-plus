@@ -118,7 +118,7 @@ class PathInfoHandler {
         if (!StringUtils.endsWith(parentDir, File.separator)) {
             parentDir += File.separator;
         }
-        packageName = packageName.replaceAll("\\.", StringPool.BACK_SLASH + File.separator);
+        packageName = packageName.replace(".", StringPool.BACK_SLASH + File.separator);
         return parentDir + packageName;
     }
 }

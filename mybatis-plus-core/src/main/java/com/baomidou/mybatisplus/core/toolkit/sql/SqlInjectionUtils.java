@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
  * @since 2021-08-15
  */
 public class SqlInjectionUtils {
+
     /**
      * SQL语法检查正则：符合两个关键字（有先后顺序）才算匹配
      */
@@ -35,7 +36,6 @@ public class SqlInjectionUtils {
      * 使用'、;或注释截断SQL检查正则
      */
     private static final Pattern SQL_COMMENT_PATTERN = Pattern.compile("'.*(or|union|--|#|/\\*|;)", Pattern.CASE_INSENSITIVE);
-
 
     /**
      * 检查参数是否存在 SQL 注入
@@ -55,7 +55,7 @@ public class SqlInjectionUtils {
      * @param text 待处理字段
      */
     public static String removeEscapeCharacter(String text) {
-        Objects.nonNull(text);
-        return text.replaceAll("\"", "").replaceAll("'", "");
+        return text.replace("\"", "").replace("'", "");
     }
+
 }
